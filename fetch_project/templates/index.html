@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome Page with Form</title>
+  
+  <!-- Bootstrap CSS link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+
+    
+  <div class="col-6 mt-5">
+    <h1>Welcome to our Website!</h1>
+    <p>Please fill out the form below:</p>
+    
+    <form id="myForm" method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+
+        <div id="er_name" class="text-danger mt-2"></div> <!-- div which displays the validation error-->
+        
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+
+        <input type="email" class="form-control" id="email" name="email" required>
+
+        <div id="er_email" class="text-danger mt-2"></div> <!-- div which displays the validation error-->
+        
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    
+  
+  </div>
+</div>
+</div>
+
+ 
+
+
+<!-- important links for ajax to work-->
+  <script
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
+        <script>
+        const form = document.getElementById('myForm'); //getting form
+        form.addEventListener('submit', submitHandler); //when event occur call function submitHandler
+        
+        function submitHandler(event) {
+    event.preventDefault(); //prevent default actions
+
+    fetch("{% url 'index' %}", {  //fetch request
+        method: 'POST',           //method post
+        body: new URLSearchParams(new FormData(form)),  //populating the request body with form data
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Set the AJAX header
+        }
+    })
+    .then(response => response.json()) //response from view fuction converted to json format
+    .then(successFunction)  //success call successFunction
+    .catch(error => console.error('Error:', error)); //any error occur output in console
+}
+        
+        function successFunction(msg) {
+            const continer_name = document.getElementById('er_name');
+            continer_name.innerHTML = '';                                    //setting both div to empty
+            const container_email = document.getElementById('er_email');
+            container_email.innerHTML = "";
+        
+            if (msg.message === 'success') {
+                form.reset(); //reset form empty
+                window.location.href = "{% url 'success' %}"; //redirect to success url
+
+            } else if (msg.message === 'rejected') {
+              
+              const errorMessages = msg.errors;  //get the error object to a variable
+
+              for (var i = 0; i < errorMessages.length; i++) {
+              var error = errorMessages[i];   //getting the first object with field and array with error 
+              var field = error.field;        //getting the first field
+
+              for (let i =0 ; i<error.message.length ;i++){
+                console.log(field,":",error.message[i])   //console output
+              }
+
+              
+}
+
+//print error in each corresponding div 
+errorMessages.forEach(error => {
+
+    for (let i=0;i<error.message.length;i++){
+
+      const paragraph = document.createElement('p'); //creating new paragraph element
+      paragraph.style.marginBottom = '1px';      
+
+      paragraph.textContent = error.message[i]; //adding that error to p element
+
+      if (error.field ==='name'){  //check which field error
+
+        continer_name.appendChild(paragraph);  //adding p to corresponding div
+
+      }else if (error.field == 'email'){ //error in email field
+        container_email.appendChild(paragraph)  //append error p to div
+      }
+      
+    }
+    
+
+    
+    
+});
+            }
+        }
+        
+</script>
+
+</body>
+</html>
